@@ -2,7 +2,7 @@
   <div id="app">
       <transition-group name="new" tag="p">
         <p v-for="msg in messages" :key="msg.id" class="msg" :class="{'sub': msg.user.subscriber, 'mod': msg.user.mod}">
-          <b :style="{color: msg.user.color}">{{msg.user['display-name']}}: </b> <span v-html="msg.content"></span>
+          <b :style="{color: msg.user.color}" :class="{'partner': isPartner(msg.user)}">{{msg.user['display-name']}}: </b> <span v-html="msg.content"></span>
         </p>
       </transition-group>
   </div>
@@ -16,35 +16,34 @@ export default {
       client: null,
       messages: [],
       emoteList: new Map(),
-      channels_id: ["28575692"],
-      channels_name: ["mistermv"]
+      channels_name: ["timthetatman"]
     }
   },
   methods: {
-    niceEmotes(msg) {
-      let chunks = msg.split(' ')
-      let finalMsg = chunks
-      for(let i in chunks){
-        if(this.emoteList.has(chunks[i])){
-          finalMsg[i] = "<img class='emoticon' src='https://static-cdn.jtvnw.net/emoticons/v1/" + this.emoteList.get(chunks[i]) + "/1.0'/>"
-        }
+    niceEmotes(msg, tags) {
+      if(tags['emotes-raw'] === null) return msg
+      let finalMessage = msg
+      let chunks = new Map()
+      for(let i in tags.emotes){
+        let delimiter = tags.emotes[i][0].split("-")
+        chunks.set(i, msg.substr(delimiter[0], (delimiter[1] - delimiter[0]) + 1))
       }
-      return finalMsg.join(' ')
-    }
-  },
-  created() {
-    for(let i in this.channels_id){
-      this.$axios.get('https://api.twitchemotes.com/api/v4/channels/' + this.channels_id[i]).then((res) => {
-        for(let e in res.data.emotes){
-          this.emoteList.set(res.data.emotes[e].code, res.data.emotes[e].id)
-        }
+      chunks.forEach((v, k) => {
+        finalMessage = finalMessage.split(v).join("<img src='https://static-cdn.jtvnw.net/emoticons/v1/" + k + "/1.0' class='emoticon'>")
       })
-    }
-    this.$axios.get('https://api.twitchemotes.com/api/v4/channels/0').then((res) => {
-      for(let e in res.data.emotes){
-        this.emoteList.set(res.data.emotes[e].code, res.data.emotes[e].id)
+      return finalMessage
+    },
+    isPartner(user) {
+      if(user.badges !== null){
+        if('partner' in user.badges){
+          return true
+        }else{
+          return false
+        }
+      }else{
+        return false
       }
-    })
+    }
   },
   mounted() {
     let i = 0
@@ -61,7 +60,7 @@ export default {
       if(this.$data.messages.length > 24){
         this.$data.messages.shift()
       }
-      this.$data.messages.push({content: this.niceEmotes(msg), user: tags, id: i})
+      this.$data.messages.push({content: this.niceEmotes(msg, tags), user: tags, id: i})
       i++
     })
   },
@@ -88,18 +87,32 @@ body{
   padding-left: 5px;
   color: #1A1A1A;
 }
+.dif{
+  border-left: 5px solid crimson;
+}
 .sub{
   border-left: 5px solid blueviolet;
 }
 .mod{
   border-left: 5px solid green;
 }
-.new-enter-active, .new-leave-active {
+.partner{
+  background-color: blueviolet;
+  color: #ffffff;
+}
+.new-enter-active {
   transition: all 0.3s cubic-bezier(0.075, 0.82, 0.165, 1);
 }
-.new-enter, .new-leave-to {
+.new-leave-active {
+  transition: all 0.5s cubic-bezier(0.075, 0.82, 0.165, 1);
+}
+.new-enter{
   opacity: 0;
   transform: translateX(100%);
+}
+.new-leave-to{
+  opacity: 0;
+  transform: translateY(0%);
 }
 .emoticon{
   width: 24px;
