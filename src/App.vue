@@ -1,8 +1,8 @@
 <template>
   <div id="app">
       <transition-group name="new" tag="p">
-        <p v-for="msg in messages" :key="msg.id" class="msg" :class="{'sub': msg.user.subscriber, 'mod': msg.user.mod}">
-          <b :style="{color: msg.user.color}" :class="{'partner': isPartner(msg.user)}">{{msg.user['display-name']}}: </b> <span v-html="msg.content"></span>
+        <p v-for="msg in messages" :key="msg.id" class="msg" :class="{'sub': msg.user.subscriber, 'mod': msg.user.mod, 'partner': isPartner(msg.user)}">
+          <b :style="{color: msg.user.color}">{{msg.user['display-name']}}: </b> <span v-html="msg.content"></span>
         </p>
       </transition-group>
   </div>
@@ -13,10 +13,10 @@ export default {
   name: 'App',
   data() {
     return {
-      client: null,
+      tmi: null,
       messages: [],
       emoteList: new Map(),
-      channels_name: ["timthetatman"]
+      channels_name: ["lefrenchrestream"]
     }
   },
   methods: {
@@ -34,15 +34,7 @@ export default {
       return finalMessage
     },
     isPartner(user) {
-      if(user.badges !== null){
-        if('partner' in user.badges){
-          return true
-        }else{
-          return false
-        }
-      }else{
-        return false
-      }
+      return user.badges && ('partner' in user.badges)
     }
   },
   mounted() {
@@ -65,7 +57,7 @@ export default {
     })
   },
   destroyed() {
-    this.$data.client = null
+    this.$data.close()
   }
 }
 </script>
@@ -97,8 +89,9 @@ body{
   border-left: 5px solid green;
 }
 .partner{
-  background-color: blueviolet;
-  color: #ffffff;
+  border-right: 1px solid blueviolet;
+  border-bottom: 1px solid blueviolet;
+  border-top: 1px solid blueviolet;
 }
 .new-enter-active {
   transition: all 0.3s cubic-bezier(0.075, 0.82, 0.165, 1);

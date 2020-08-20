@@ -1,12 +1,10 @@
 import Vue from 'vue'
 import App from './App.vue'
 
-let tmi = require('tmi.js')
-let axios = require('axios').default
+import tmi from 'tmi.js'
 
 Vue.config.productionTip = false
 Vue.prototype.$tmi = tmi
-Vue.prototype.$axios = axios
 
 new Vue({
   render: h => h(App),
