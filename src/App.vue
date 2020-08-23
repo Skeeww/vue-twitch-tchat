@@ -16,7 +16,7 @@ export default {
       tmi: null,
       messages: [],
       emoteList: new Map(),
-      channels_name: ["lefrenchrestream"]
+      channels_name: ["12skew"]
     }
   },
   methods: {
